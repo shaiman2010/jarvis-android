@@ -1,0 +1,124 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#030916">
+<title>JARVIS | Personal AI</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#030916;color:#d9f6ff;font-family:Arial,sans-serif;min-height:100vh}
+main{max-width:650px;margin:auto;padding:22px 16px}
+header{text-align:center;padding:25px 0}
+h1{letter-spacing:9px;color:#62eaff;text-shadow:0 0 18px #008cff;margin:15px 0}
+.sub{color:#6aacc8;font-size:12px;letter-spacing:3px}
+.core{width:145px;height:145px;margin:25px auto;border:2px solid #28dfff;border-radius:50%;display:grid;place-items:center;box-shadow:0 0 22px #0077ff,inset 0 0 25px #006cff;position:relative}
+.core:before,.core:after{content:"";position:absolute;border:1px solid #178bff;border-radius:50%;inset:10px}
+.core:after{inset:-9px;border-style:dashed;animation:spin 18s linear infinite}
+.core span{font-size:35px;color:#8ff7ff;text-shadow:0 0 20px #00bfff}
+@keyframes spin{to{transform:rotate(360deg)}}
+.status{text-align:center;color:#52e6b2;font-size:12px;letter-spacing:2px}
+.panel{border:1px solid #174a70;background:#071526;border-radius:14px;padding:15px;margin-top:18px;box-shadow:0 0 18px #00305a33}
+.label{font-size:11px;color:#56cfff;letter-spacing:2px;margin-bottom:12px}
+#chat{height:210px;overflow:auto;display:flex;flex-direction:column;gap:10px}
+.msg{padding:11px 13px;border-radius:10px;max-width:90%;line-height:1.5;font-size:14px;white-space:pre-wrap}
+.bot{background:#0c2940;border:1px solid #14517b;align-self:flex-start}
+.user{background:#073b50;border:1px solid #1685a8;align-self:flex-end}
+.controls{display:flex;gap:8px;margin-top:12px}
+input{min-width:0;flex:1;background:#030d1b;color:white;border:1px solid #1c5477;border-radius:9px;padding:13px;font-size:15px}
+button{border:1px solid #16bde9;background:#082b45;color:#8deaff;border-radius:9px;padding:12px;font-size:15px;cursor:pointer}
+button:active{background:#10516e}
+#send{padding-inline:17px}
+#mic{width:100%;margin-top:10px}
+footer{text-align:center;color:#456d89;font-size:11px;padding:25px 0}
+</style>
+</head>
+<body>
+<main>
+<header>
+<div class="sub">PERSONAL ASSISTANT SYSTEM</div>
+<h1>J.A.R.V.I.S.</h1>
+<div class="core"><span>J</span></div>
+<div class="status" id="status">● SYSTEM ONLINE</div>
+</header>
+
+<section class="panel">
+<div class="label">ASSISTANT CONSOLE</div>
+<div id="chat" aria-live="polite">
+<div class="msg bot">Hello! I am JARVIS. Your interface is online. Type a message or use the microphone.</div>
+</div>
+<div class="controls">
+<input id="input" placeholder="Ask JARVIS something..." autocomplete="off">
+<button id="send">➤</button>
+</div>
+<button id="mic">🎙 SPEAK TO JARVIS</button>
+</section>
+
+<section class="panel">
+<div class="label">SYSTEM INFORMATION</div>
+<div id="clock">Loading time...</div>
+<p class="sub">VERSION 1.0 • WEB PROTOTYPE</p>
+</section>
+<footer>JARVIS PERSONAL PROJECT • BUILT FOR YOUR DEVICE</footer>
+</main>
+<script>
+const chat=document.getElementById('chat');
+const input=document.getElementById('input');
+const status=document.getElementById('status');
+
+function say(text,who){
+ const el=document.createElement('div');
+ el.className='msg '+who;
+ el.textContent=text;
+ chat.appendChild(el);
+ chat.scrollTop=chat.scrollHeight;
+}
+function reply(text){
+ const t=text.toLowerCase();
+ if(/\b(hi|hello|hey)\b/.test(t))return 'Hello! How can I help you today?';
+ if(t.includes('your name'))return 'I am JARVIS, your personal assistant prototype.';
+ if(t.includes('time'))return 'The current time is '+new Date().toLocaleTimeString()+'.';
+ if(t.includes('date')||t.includes('today'))return 'Today is '+new Date().toLocaleDateString(undefined,{dateStyle:'full'})+'.';
+ if(t.includes('who are you'))return 'I am JARVIS 1.0. My AI connection is not enabled yet.';
+ if(t.includes('help'))return 'You can ask for the time, date, or greet me. Real AI answers will be added in a later version.';
+ return 'I received your message: "'+text+'". I am currently in demo mode. A real AI service needs to be connected for intelligent answers.';
+}
+function send(){
+ const text=input.value.trim();
+ if(!text)return;
+ say(text,'user');
+ input.value='';
+ say(reply(text),'bot');
+}
+document.getElementById('send').onclick=send;
+input.addEventListener('keydown',e=>{if(e.key==='Enter')send()});
+
+function clock(){
+ document.getElementById('clock').textContent=
+ new Date().toLocaleString(undefined,{dateStyle:'medium',timeStyle:'medium'});
+}
+clock();setInterval(clock,1000);
+
+const SpeechRecognition=window.SpeechRecognition||window.webkitSpeechRecognition;
+document.getElementById('mic').onclick=()=>{
+ if(!SpeechRecognition){
+  status.textContent='VOICE INPUT NOT SUPPORTED';
+  say('Your browser does not support speech recognition. Try opening this website in Chrome.','bot');
+  return;
+ }
+ const recognition=new SpeechRecognition();
+ recognition.lang='en-IN';
+ recognition.interimResults=false;
+ recognition.onstart=()=>status.textContent='● LISTENING...';
+ recognition.onresult=e=>{
+  input.value=e.results[0][0].transcript;
+  send();
+ };
+ recognition.onerror=()=>status.textContent='● VOICE ERROR — TRY AGAIN';
+ recognition.onend=()=>status.textContent='● SYSTEM ONLINE';
+ recognition.start();
+};
+</script>
+</body>
+</html>
